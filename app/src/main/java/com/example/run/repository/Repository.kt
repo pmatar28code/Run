@@ -2,6 +2,6 @@ package com.example.run.repository
 
 import com.mapbox.geojson.Point
 
-object Respository {
+object Repository {
     var routeCoordinates = mutableListOf<Point>()
 }

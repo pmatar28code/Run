@@ -10,7 +10,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.run.databinding.FragmentRunBinding
-import com.example.run.repository.Respository
+import com.example.run.repository.Repository
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineRequest
 import com.mapbox.android.core.permissions.PermissionsListener
@@ -356,7 +356,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
      fun testingRoute(style:Style){
         style.addSource(GeoJsonSource("line-source",
                 FeatureCollection.fromFeatures(arrayOf<Feature>(Feature.fromGeometry(
-                        LineString.fromLngLats(Respository.routeCoordinates)
+                        LineString.fromLngLats(Repository.routeCoordinates)
                 )))))
 
 // The layer properties for our line. This is where we make the line dotted, set the

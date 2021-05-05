@@ -2,7 +2,7 @@ package com.example.run
 
 import android.util.Log
 import android.widget.Toast
-import com.example.run.repository.Respository
+import com.example.run.repository.Repository
 import com.mapbox.android.core.location.LocationEngineCallback
 import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.geojson.Point
@@ -30,7 +30,7 @@ class MainActivityLocationCallBack(activity: RunFragment): LocationEngineCallbac
             if (activity!!.map != null && result.lastLocation != null) {
                 activity!!.map?.getLocationComponent()?.forceLocationUpdate(result.lastLocation)
                 point = Point.fromLngLat(result.lastLocation!!.longitude, result.lastLocation!!.latitude)
-                Respository.routeCoordinates.add(point!!)
+                Repository.routeCoordinates.add(point!!)
                 //activity!!.map?.getLocationComponent()?.setCameraMode(CameraMode.TRACKING,6000L,12.0,null,null,null)
 
                //Toast.makeText(this.activity!!.requireContext(),"this is the location: ${Respository.routeCoordinates}",Toast.LENGTH_SHORT).show()
