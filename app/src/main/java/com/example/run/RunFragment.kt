@@ -47,6 +47,7 @@ import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import com.mapbox.turf.TurfMeasurement
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -80,6 +81,13 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
     private var mapSnapshotter: MapSnapshotter? = null
     private var hasStartedSnapshotGeneration = false
 
+    private var s:Int = 0
+    private var f:Int = 1
+    private var accumulatedDistance = 0.0
+    private var distance:Double = 0.0
+    private var turfPointFrom:Point ?= null
+    private var turfPointTo:Point ?= null
+
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,17 +112,32 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
 
                     binding.currentLocationFab.setOnClickListener {
                         testingRoute(style)
+                        while (s <= Repository.routeCoordinates.size){
+                            if (s <= Repository.routeCoordinates.size) {
+                                if (f < Repository.routeCoordinates.size) {
+                                    turfPointFrom = Repository.routeCoordinates[s]
+                                    turfPointTo = Repository.routeCoordinates[f]
+                                    distance = TurfMeasurement.distance(turfPointFrom!!, turfPointTo!!, "miles")
+                                    //Toast.makeText(requireContext(), "this is the total distance $distance", Toast.LENGTH_SHORT).show()
 
-                        if (!hasStartedSnapshotGeneration) {
-                            hasStartedSnapshotGeneration = true;
-                            Toast.makeText(requireContext(), "loading snapshot image", Toast.LENGTH_SHORT).show()
-                            mapView?.measuredHeight?.let {
-                                startSnapShot(
-                                        mapboxMap.projection.visibleRegion.latLngBounds,
-                                        mapView!!.measuredHeight,
-                                        mapView!!.measuredWidth)
-                            };
-                        }
+                                    ++f
+                                }
+                                ++s
+                                accumulatedDistance += distance
+                            }
+                    }
+                        Toast.makeText(requireContext(),"this is the total distance $accumulatedDistance",Toast.LENGTH_LONG).show()
+                        //
+                       // if (!hasStartedSnapshotGeneration) {
+                         //   hasStartedSnapshotGeneration = true;
+                          //  Toast.makeText(requireContext(), "loading snapshot image", Toast.LENGTH_SHORT).show()
+                          //  mapView?.measuredHeight?.let {
+                            //    startSnapShot(
+                               //         mapboxMap.projection.visibleRegion.latLngBounds,
+                               //         mapView!!.measuredHeight,
+                                //        mapView!!.measuredWidth)
+                           // };
+                       // }
                         binding.currentLocationFab.setOnClickListener {
                             if (!hasStartedSnapshotGeneration) {
                                 hasStartedSnapshotGeneration = true;
