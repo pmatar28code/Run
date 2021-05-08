@@ -2,10 +2,16 @@ package com.example.run
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.Looper.getMainLooper
+import android.os.StrictMode
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -23,6 +29,7 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
+import com.mapbox.mapboxsdk.geometry.LatLngBounds
 import com.mapbox.mapboxsdk.location.LocationComponent
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
@@ -32,6 +39,9 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.maps.Style.OnStyleLoaded
+import com.mapbox.mapboxsdk.snapshotter.MapSnapshot
+import com.mapbox.mapboxsdk.snapshotter.MapSnapshotter
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
@@ -40,6 +50,10 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
 
 class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapReadyCallback {
     companion object{
@@ -63,13 +77,18 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
     val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
     val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
 
+    private var mapSnapshotter: MapSnapshotter? = null
+    private var hasStartedSnapshotGeneration = false
+
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = FragmentRunBinding.bind(view)
 
+        val builder: StrictMode.VmPolicy.Builder = StrictMode.VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
 
-       // val locationEngine = LocationEngineProvider.getBestLocationEngine(requireContext())
+
 
 
         mapView = binding.mapView.apply {
@@ -85,6 +104,33 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
 
                     binding.currentLocationFab.setOnClickListener {
                         testingRoute(style)
+
+                        if (!hasStartedSnapshotGeneration) {
+                            hasStartedSnapshotGeneration = true;
+                            Toast.makeText(requireContext(), "loading snapshot image", Toast.LENGTH_SHORT).show()
+                            mapView?.measuredHeight?.let {
+                                startSnapShot(
+                                        mapboxMap.projection.visibleRegion.latLngBounds,
+                                        mapView!!.measuredHeight,
+                                        mapView!!.measuredWidth)
+                            };
+                        }
+                        binding.currentLocationFab.setOnClickListener {
+                            if (!hasStartedSnapshotGeneration) {
+                                hasStartedSnapshotGeneration = true;
+                                Toast.makeText(requireContext(), "loading snapshot image", Toast.LENGTH_SHORT).show()
+                                mapView?.measuredHeight?.let {
+                                    startSnapShot(
+                                            mapboxMap.projection.visibleRegion.latLngBounds,
+                                            mapView!!.measuredHeight,
+                                            mapView!!.measuredWidth)
+                                };
+                            }
+                            //val builder: StrictMode.VmPolicy.Builder = StrictMode.VmPolicy.Builder()
+                            //StrictMode.setVmPolicy(builder.build())
+                        }
+
+
                         //Toast.makeText(requireContext(),"list: ${Respository.routeCoordinates[0]}",Toast.LENGTH_SHORT).show()
                     }
                     //setPinOnStartingLocation(style)
@@ -94,17 +140,17 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
 
                 }
 
-                val routeLayer = LineLayer(ROUTE_LAYER, ROUTE_SOURCE).apply {
-                    setProperties(
-                            PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
-                            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
-                            PropertyFactory.lineWidth(1f),
-                            PropertyFactory.lineColor(Color.BLUE)
-                    )
-                }
+                //val routeLayer = LineLayer(ROUTE_LAYER, ROUTE_SOURCE).apply {
+                   // setProperties(
+                       //     PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                          //  PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+                           // PropertyFactory.lineWidth(1f),
+                           // PropertyFactory.lineColor(Color.BLUE)
+                    //)
+                //}
                 map?.getStyle { style ->
-                    style.addSource(GeoJsonSource(ROUTE_SOURCE))
-                    style.addLayer(routeLayer)
+                   // style.addSource(GeoJsonSource(ROUTE_SOURCE))
+                   // style.addLayer(routeLayer)
 
                 }
                 //val request = LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
@@ -277,6 +323,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
     override fun onPause() {
         super.onPause()
         mapView?.onPause()
+        mapSnapshotter?.cancel()
     }
 
     override fun onStop() {
@@ -371,6 +418,58 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                 PropertyFactory.lineWidth(5f),
                 PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
         ))
+    }
+
+    private fun startSnapShot(latLngBounds: LatLngBounds, height: Int, width: Int) {
+        map?.getStyle { style ->
+            if (mapSnapshotter == null) {
+// Initialize snapshotter with map dimensions and given bounds
+                val options = MapSnapshotter.Options(width, height)
+                        .withRegion(latLngBounds)
+                        .withCameraPosition(map?.cameraPosition)
+                        .withStyle(style.uri)
+                mapSnapshotter = MapSnapshotter(requireContext(), options)
+            } else {
+// Reuse pre-existing MapSnapshotter instance
+                mapSnapshotter!!.setSize(width, height)
+                mapSnapshotter!!.setRegion(latLngBounds)
+                mapSnapshotter!!.setCameraPosition(map?.cameraPosition)
+            }
+            mapSnapshotter!!.start { snapshot ->
+                val bitmapOfMapSnapshotImage: Bitmap = snapshot.bitmap
+                val bmpUri: Uri? = getLocalBitmapUri(bitmapOfMapSnapshotImage)
+                val shareIntent = Intent()
+                shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri)
+                //shareIntent.setPackage("com.whatsapp")
+                shareIntent.type = "image/png"
+                shareIntent.action = Intent.ACTION_SEND
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(Intent.createChooser(shareIntent, "Share map image"))
+                hasStartedSnapshotGeneration = false
+            }
+        }
+    }
+
+    private fun getLocalBitmapUri(bmp: Bitmap): Uri? {
+        var bmpUri: Uri? = null
+        val file = File(requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                "share_image_" +  System.currentTimeMillis() + ".png")
+        var out: FileOutputStream? = null
+        try {
+            out = FileOutputStream(file)
+            bmp.compress(Bitmap.CompressFormat.PNG, 90, out)
+            try {
+                out.close()
+            } catch (exception: IOException) {
+                //exception.printStackTrace()
+                Log.e("Pedro","Error")
+            }
+            bmpUri = Uri.fromFile(file)
+        } catch (exception: FileNotFoundException) {
+            //exception.printStackTrace()
+            Log.e("Pedro", "Error")
+        }
+        return bmpUri
     }
 
 }
