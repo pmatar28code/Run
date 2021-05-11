@@ -1,5 +1,7 @@
 <resources>
     <string name="new_location">New location</string>
+    <string name="total_distance_text">Total Distance:</string>
+
     <string name="app_name">Run</string>
     <string name="accept_message">Please accept, se we can have your location, so the app works as expected</string>
     <string name="click_to_run">Click here to keep track of your run!!</string>
