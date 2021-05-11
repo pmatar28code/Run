@@ -1,8 +1,10 @@
 package com.example.run
 
+import android.Manifest
 import android.location.Location
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.example.run.databinding.ActivityMainBinding
 import com.example.run.interfaces.MainInterface
@@ -22,6 +24,8 @@ class MainActivity() : AppCompatActivity(), MainInterface {
         Mapbox.getInstance(this, MAPBOX_KEY)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1)
         swapFragments(MainFragment())
 
 

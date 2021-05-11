@@ -6,6 +6,7 @@ import com.example.run.repository.Repository
 import com.mapbox.android.core.location.LocationEngineCallback
 import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.geojson.Point
+import com.mapbox.mapboxsdk.location.modes.CameraMode
 import java.lang.ref.WeakReference
 
 
@@ -31,7 +32,7 @@ class MainActivityLocationCallBack(activity: RunFragment): LocationEngineCallbac
                 activity!!.map?.getLocationComponent()?.forceLocationUpdate(result.lastLocation)
                 point = Point.fromLngLat(result.lastLocation!!.longitude, result.lastLocation!!.latitude)
                 Repository.routeCoordinates.add(point!!)
-                //activity!!.map?.getLocationComponent()?.setCameraMode(CameraMode.TRACKING,6000L,12.0,null,null,null)
+                activity!!.map?.getLocationComponent()?.setCameraMode(CameraMode.TRACKING,6000L,12.0,null,null,null)
 
                //Toast.makeText(this.activity!!.requireContext(),"this is the location: ${Respository.routeCoordinates}",Toast.LENGTH_SHORT).show()
             }

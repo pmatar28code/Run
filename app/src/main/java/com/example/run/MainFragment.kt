@@ -21,7 +21,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 mainTextIntro.isVisible = mainViewModel.visibilityFalse
                 mainImage.isVisible =  mainViewModel.visibilityFalse
                 mainStartRunButton.isVisible = mainViewModel.visibilityFalse
-                mainViewModel.swapingViaInterface(mainAct)
+                mainViewModel.swapingViaInterface(mainAct,RunFragment())
             }
         }
     }

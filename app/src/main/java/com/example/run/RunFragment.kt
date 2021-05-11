@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.net.Uri
@@ -11,12 +12,14 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Looper.getMainLooper
 import android.os.StrictMode
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.run.databinding.FragmentRunBinding
 import com.example.run.repository.Repository
+import com.example.run.viewmodels.MainFragViewModel
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineRequest
 import com.mapbox.android.core.permissions.PermissionsListener
@@ -40,7 +43,6 @@ import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.maps.Style.OnStyleLoaded
-import com.mapbox.mapboxsdk.snapshotter.MapSnapshot
 import com.mapbox.mapboxsdk.snapshotter.MapSnapshotter
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
@@ -66,6 +68,21 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
         private var MAPBOX_KEY = "pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnJ4anpzYTBuMzkyb3Bob3lwNjI3bTcifQ.1vv5YfZsK6KtKLd_cG7CQw"
 
     }
+    /*
+    class screenShot (view:View){
+        fun takeScreenshot(view: View): Bitmap {
+            view.isDrawingCacheEnabled = true
+            view.buildDrawingCache(true)
+            val b = Bitmap.createBitmap(view.drawingCache)
+            view.isDrawingCacheEnabled = false
+            return b
+        }
+        fun takeScreenshotOfRootView(v: View): Bitmap {
+            return takeScreenshot(v)
+        }
+    }
+
+     */
 
     private var mapView:MapView?=null
      var map:MapboxMap ?= null
@@ -107,8 +124,9 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                     val pinImage = resources.getDrawable(R.drawable.ic_pin, null)
                     style.addImage(PIN_IMAGE, pinImage)
 
-                      //enableLocation(style)
-                    enableLocationComponent(style)
+                        enableLocationComponent(style)
+                        setPinOnStartingLocation(style)
+
 
                     binding.currentLocationFab.setOnClickListener {
                         testingRoute(style)
@@ -118,15 +136,13 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                                     turfPointFrom = Repository.routeCoordinates[s]
                                     turfPointTo = Repository.routeCoordinates[f]
                                     distance = TurfMeasurement.distance(turfPointFrom!!, turfPointTo!!, "miles")
-                                    //Toast.makeText(requireContext(), "this is the total distance $distance", Toast.LENGTH_SHORT).show()
-
                                     ++f
                                 }
                                 ++s
                                 accumulatedDistance += distance
                             }
                     }
-                        Toast.makeText(requireContext(),"this is the total distance $accumulatedDistance",Toast.LENGTH_LONG).show()
+                        //Toast.makeText(requireContext(),"this is the total distance $accumulatedDistance",Toast.LENGTH_LONG).show()
                         //
                        // if (!hasStartedSnapshotGeneration) {
                          //   hasStartedSnapshotGeneration = true;
@@ -139,16 +155,50 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                            // };
                        // }
                         binding.currentLocationFab.setOnClickListener {
-                            if (!hasStartedSnapshotGeneration) {
+                        /*    if (!hasStartedSnapshotGeneration) {
                                 hasStartedSnapshotGeneration = true;
                                 Toast.makeText(requireContext(), "loading snapshot image", Toast.LENGTH_SHORT).show()
-                                mapView?.measuredHeight?.let {
-                                    startSnapShot(
-                                            mapboxMap.projection.visibleRegion.latLngBounds,
+                                startSnapShot(
+                                        mapboxMap.projection.visibleRegion.latLngBounds,
                                             mapView!!.measuredHeight,
                                             mapView!!.measuredWidth)
-                                };
+                            }*/
+
+                            /* this method gives screen shot without route
+                            val snapShotOptions = MapSnapshotter.Options(500, 500).apply {
+                                this.withStyle(styleUri)
                             }
+
+                            snapShotOptions.withRegion(mapboxMap.projection.visibleRegion.latLngBounds)
+
+                            snapShotOptions.withStyle(mapboxMap.style!!.url)
+
+                            val mapSnapshotter = MapSnapshotter(requireContext(), snapShotOptions)
+                            mapSnapshotter?.start { snapshot ->
+
+                                // Display, share, or use bitmap image how you'd like
+
+                                val bitmapOfMapSnapshotImage = snapshot.bitmap
+                                Repository.screenShotRep = bitmapOfMapSnapshotImage
+                            }
+
+                             */
+
+
+
+                            //Repository.screenShotRep  = takeScreenShot(this.rootView)//screenShot(mapView!!.rootView)
+                            mapboxMap.snapshot {
+                                Repository.screenShotRep = it
+                                var mainAct = activity as MainActivity
+                                val mainViewModel : MainFragViewModel by viewModels()
+                                mainViewModel.swapingViaInterface(mainAct,ResultsFragment())
+                            }
+
+                           // val screen = screenShot(this)
+                            //Repository.screenShotRep = screen.takeScreenshotOfRootView(this)
+
+
+
                             //val builder: StrictMode.VmPolicy.Builder = StrictMode.VmPolicy.Builder()
                             //StrictMode.setVmPolicy(builder.build())
                         }
@@ -208,10 +258,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
 
         }
 
-
-
-
-}
+    }
 
     private fun route(){
         val lastKnownLocation = map?.locationComponent?.lastKnownLocation ?: return
@@ -408,6 +455,19 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
         }
     }
 
+    fun requestPermission(style:Style, callBack: (Boolean) -> Unit){
+        val permissionsManager = PermissionsManager(this)
+        permissionsManager.requestLocationPermissions(requireActivity())
+        if(PermissionsManager.areLocationPermissionsGranted(requireContext())){
+            enableLocationComponent(style)
+            var granted = true
+            callBack(PermissionsManager.areLocationPermissionsGranted(requireContext()))
+        }else{
+            requestPermission(style, callBack)
+
+        }
+    }
+
     /**
      * Set up the LocationEngine and the parameters for querying the device's location
      */
@@ -444,7 +504,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
     }
 
     private fun startSnapShot(latLngBounds: LatLngBounds, height: Int, width: Int) {
-        map?.getStyle { style ->
+        map?.getStyle(OnStyleLoaded { style ->
             if (mapSnapshotter == null) {
 // Initialize snapshotter with map dimensions and given bounds
                 val options = MapSnapshotter.Options(width, height)
@@ -459,24 +519,24 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                 mapSnapshotter!!.setCameraPosition(map?.cameraPosition)
             }
             mapSnapshotter!!.start { snapshot ->
-                val bitmapOfMapSnapshotImage: Bitmap = snapshot.bitmap
-                val bmpUri: Uri? = getLocalBitmapUri(bitmapOfMapSnapshotImage)
+                val bitmapOfMapSnapshotImage = snapshot.bitmap
+                Repository.screenShotRep = snapshot.bitmap
+                val bmpUri = getLocalBitmapUri(bitmapOfMapSnapshotImage)
                 val shareIntent = Intent()
                 shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri)
-                //shareIntent.setPackage("com.whatsapp")
                 shareIntent.type = "image/png"
                 shareIntent.action = Intent.ACTION_SEND
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 startActivity(Intent.createChooser(shareIntent, "Share map image"))
                 hasStartedSnapshotGeneration = false
             }
-        }
+        })
     }
 
     private fun getLocalBitmapUri(bmp: Bitmap): Uri? {
         var bmpUri: Uri? = null
         val file = File(requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                "share_image_" +  System.currentTimeMillis() + ".png")
+                "share_image_" + System.currentTimeMillis() + ".png")
         var out: FileOutputStream? = null
         try {
             out = FileOutputStream(file)
@@ -485,14 +545,37 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                 out.close()
             } catch (exception: IOException) {
                 //exception.printStackTrace()
-                Log.e("Pedro","Error")
+                Log.e("PEDro","$exception")
             }
             bmpUri = Uri.fromFile(file)
         } catch (exception: FileNotFoundException) {
-            //exception.printStackTrace()
-            Log.e("Pedro", "Error")
+           // exception.printStackTrace()
+            Log.e("PEDRO2","$exception")
         }
         return bmpUri
     }
+
+    private fun screenShot(view: View): Bitmap? {
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+        return bitmap
+    }
+
+    fun takeScreenShot(view: View): Bitmap? {
+        // configuramos para que la view almacene la cache en una imagen
+        view.isDrawingCacheEnabled = true
+        view.drawingCacheQuality = View.DRAWING_CACHE_QUALITY_LOW
+        view.buildDrawingCache()
+        if (view.drawingCache == null) return null // Verificamos antes de que no sea null
+
+        // utilizamos esa cache, para crear el bitmap que tendra la imagen de la view actual
+        val snapshot = Bitmap.createBitmap(view.drawingCache)
+        view.isDrawingCacheEnabled = false
+        view.destroyDrawingCache()
+        return snapshot
+    }
+
+
 
 }
