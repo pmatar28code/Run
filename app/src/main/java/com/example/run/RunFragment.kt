@@ -97,16 +97,10 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                             getDistanceKilometers()
                             Repository.repoAccumulatedDistanceMiles = accumulatedDistanceMiles
                             Repository.repoAccumulatedDistanceKilometers = accumulatedDistanceKilometers
-                            Toast.makeText(requireContext(),"km: $accumulatedDistanceKilometers",Toast.LENGTH_LONG).show()
                             map?.locationComponent?.locationEngine?.removeLocationUpdates(PendingIntent.readPendingIntentOrNullFromParcel(Parcel.obtain()))
                             map?.locationComponent?.setCameraMode(CameraMode.NONE)
                             map?.locationComponent?.setLocationComponentEnabled(false)
                             Repository.locationComponentDisabled = true
-                        }
-
-
-                        binding.currentLocationFab.setOnClickListener {
-
                             mapboxMap.snapshot {
                                 Repository.screenShotRep = it
                                 var mainAct = activity as MainActivity
@@ -114,6 +108,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                                 mainViewModel.swapingViaInterface(mainAct,ResultsFragment())
                             }
                         }
+                        AlertDialog.show()
                     }
                 }
             }
