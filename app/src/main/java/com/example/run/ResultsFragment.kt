@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment
 import com.example.run.databinding.FragmentResultsBinding
 import com.example.run.repository.Repository
 import com.mapbox.mapboxsdk.maps.Style
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class ResultsFragment: Fragment(R.layout.fragment_results) {
     @SuppressLint("SetTextI18n")
@@ -22,21 +24,20 @@ class ResultsFragment: Fragment(R.layout.fragment_results) {
 
         binding.apply {
             mapScreeshot.setImageBitmap(Repository.screenShotRep)
-            distanceText.text = Repository.repoAccumulatedDistanceMiles.toString() + "Miles"
+            distanceText.text = Repository.roundMiles().toString() + "Miles"
             buttonMiles.setOnClickListener {
-            distanceText.text = Repository.repoAccumulatedDistanceMiles.toString() +"Miles"
+            distanceText.text = Repository.roundMiles().toString() +"Miles"
             }
             buttonKilometers.setOnClickListener {
-                distanceText.text = Repository.repoAccumulatedDistanceKilometers.toString() + "KM"
+                distanceText.text = Repository.roundKilometers().toString() + "KM"
             }
                 shareFab.setOnClickListener {
                 share(Repository.screenShotRep!!)
 
             }
         }
-
-
     }
+
     private fun share(bitmap: Bitmap) {
         val ctx = requireContext()
         val pathofBmp: String = MediaStore.Images.Media.insertImage(ctx.contentResolver,
@@ -51,8 +52,8 @@ class ResultsFragment: Fragment(R.layout.fragment_results) {
     }
 
     private fun deleteRouteAndPin(style: Style){
-        style.removeLayer("linelayer")
-        style.removeSource("line-source")
+        style.removeLayer(Repository.lineLayer)
+        style.removeSource(Repository.lineSource)
         style.apply {
             removeLayer(RunFragment.PIN_LOCATION_SYMBOL)
             removeSource(RunFragment.PIN_LOCATION_SOURCE)
@@ -69,8 +70,8 @@ class ResultsFragment: Fragment(R.layout.fragment_results) {
         RunFragment.turfPointTo = null
         Repository.routeCoordinates.clear()
         Repository.locationComponentDisabled = false
-        Repository.lineSource +="r"
-        Repository.lineLayer +="r"
+        Repository.lineSource +="0"
+        Repository.lineLayer +="1"
 
     }
 }

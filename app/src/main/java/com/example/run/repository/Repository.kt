@@ -12,6 +12,8 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 object Repository {
     var routeCoordinates = mutableListOf<Point>()
@@ -39,5 +41,17 @@ object Repository {
                 PropertyFactory.lineWidth(5f),
                 PropertyFactory.lineColor(Color.parseColor("#0000FF"))
         ))
+    }
+
+    fun roundKilometers():BigDecimal{
+        val roundKilometers =
+                BigDecimal(repoAccumulatedDistanceKilometers!!).setScale(2, RoundingMode.HALF_EVEN)
+        return roundKilometers
+    }
+
+    fun roundMiles():BigDecimal{
+       val roundMiles=
+               BigDecimal(repoAccumulatedDistanceMiles!!).setScale(2, RoundingMode.HALF_EVEN)
+        return roundMiles
     }
 }

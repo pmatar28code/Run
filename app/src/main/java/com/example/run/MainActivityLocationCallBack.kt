@@ -26,9 +26,9 @@ class MainActivityLocationCallBack(activity: RunFragment): LocationEngineCallbac
                 point = Point.fromLngLat(result.lastLocation!!.longitude, result.lastLocation!!.latitude)
                 Repository.routeCoordinates.add(point!!)
                 activity!!.map?.getLocationComponent()?.setCameraMode(
-                CameraMode.TRACKING,3000L,15.0,null,null,null)
+                CameraMode.TRACKING,3000L,17.0,null,null,null)
                 activity!!.map?.getStyle {
-                    if(Repository.locationComponentDisabled == true){
+                    if(Repository.locationComponentDisabled){
 
                     }else{
                         Repository.testingRoute(it)
