@@ -8,4 +8,8 @@
     <string name="main_title">Welcome to Run App.</string>
     <string name="main_introduction">Please press botton below so we can start tracking your run, when you are finished running, please come back to the app and press the button to get your running trail on the map and your distance. Enjoy!.</string>
     <string name="cancel">cancel</string>
+    <string name="end_run_dialog">Are you sure you want to end your run?</string>
+    <string name="title_dialog">Run App:</string>
+    <string name="cancel_dialog">Cancel</string>
+    <string name="accept_dialog">Accept</string>
 </resources>

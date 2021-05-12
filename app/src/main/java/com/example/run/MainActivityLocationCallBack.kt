@@ -27,6 +27,13 @@ class MainActivityLocationCallBack(activity: RunFragment): LocationEngineCallbac
                 Repository.routeCoordinates.add(point!!)
                 activity!!.map?.getLocationComponent()?.setCameraMode(
                 CameraMode.TRACKING,3000L,15.0,null,null,null)
+                activity!!.map?.getStyle {
+                    if(Repository.locationComponentDisabled == true){
+
+                    }else{
+                        Repository.testingRoute(it)
+                    }
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ package com.example.run
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.PendingIntent
+import android.content.DialogInterface
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.os.Looper.getMainLooper
 import android.os.Parcel
 import android.os.StrictMode
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.run.databinding.FragmentRunBinding
@@ -86,24 +88,30 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                     enableLocationComponent(style)
 
                     binding.currentLocationFab.setOnClickListener {
-                        testingRoute(style)
-                        getDistanceMiles()
-                        getDistanceKilometers()
-                        Repository.repoAccumulatedDistanceMiles = accumulatedDistanceMiles
-                        Repository.repoAccumulatedDistanceKilometers = accumulatedDistanceKilometers
-                        map?.locationComponent?.locationEngine?.removeLocationUpdates(PendingIntent.readPendingIntentOrNullFromParcel(Parcel.obtain()))
-                        map?.locationComponent?.setCameraMode(CameraMode.NONE)
-                        map?.locationComponent?.setLocationComponentEnabled(false)
+                        val AlertDialog = AlertDialog.Builder(requireContext())
+                        AlertDialog.setTitle(R.string.title_dialog)
+                        AlertDialog.setMessage(R.string.end_run_dialog)
+                        AlertDialog.setNegativeButton(R.string.cancel_dialog,null)
+                        AlertDialog.setPositiveButton(R.string.accept_dialog){ _, _ ->
+                            getDistanceMiles()
+                            getDistanceKilometers()
+                            Repository.repoAccumulatedDistanceMiles = accumulatedDistanceMiles
+                            Repository.repoAccumulatedDistanceKilometers = accumulatedDistanceKilometers
+                            Toast.makeText(requireContext(),"km: $accumulatedDistanceKilometers",Toast.LENGTH_LONG).show()
+                            map?.locationComponent?.locationEngine?.removeLocationUpdates(PendingIntent.readPendingIntentOrNullFromParcel(Parcel.obtain()))
+                            map?.locationComponent?.setCameraMode(CameraMode.NONE)
+                            map?.locationComponent?.setLocationComponentEnabled(false)
+                            Repository.locationComponentDisabled = true
+                        }
+
+
                         binding.currentLocationFab.setOnClickListener {
 
                             mapboxMap.snapshot {
                                 Repository.screenShotRep = it
-
-
                                 var mainAct = activity as MainActivity
                                 val mainViewModel : MainFragViewModel by viewModels()
                                 mainViewModel.swapingViaInterface(mainAct,ResultsFragment())
-
                             }
                         }
                     }
@@ -144,6 +152,8 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                 accumulatedDistanceKilometers += distanceKilometers
             }
         }
+        s =0
+        f=1
     }
 
     fun setPinOnStartingLocation(style:Style): Int {
@@ -290,19 +300,5 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
         locationEngine.getLastLocation(mainLocationCallback)
     }
 
-     private fun testingRoute(style:Style){
-        style.addSource(GeoJsonSource("line-source",
-                FeatureCollection.fromFeatures(arrayOf<Feature>(Feature.fromGeometry(
-                        LineString.fromLngLats(Repository.routeCoordinates)
-                )))))
-// The layer properties for our line. This is where we make the line dotted, set the
-// color, etc.
-        style.addLayer(LineLayer("linelayer", "line-source").withProperties(
-                PropertyFactory.lineDasharray(arrayOf(0.01f, 2f)),
-                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
-                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
-                PropertyFactory.lineWidth(5f),
-                PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
-        ))
-    }
+
 }

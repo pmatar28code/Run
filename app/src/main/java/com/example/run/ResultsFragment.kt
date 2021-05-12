@@ -68,6 +68,9 @@ class ResultsFragment: Fragment(R.layout.fragment_results) {
         RunFragment.turfPointFrom = null
         RunFragment.turfPointTo = null
         Repository.routeCoordinates.clear()
+        Repository.locationComponentDisabled = false
+        Repository.lineSource +="r"
+        Repository.lineLayer +="r"
 
     }
 }
