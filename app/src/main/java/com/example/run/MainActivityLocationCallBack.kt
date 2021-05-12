@@ -26,7 +26,7 @@ class MainActivityLocationCallBack(activity: RunFragment): LocationEngineCallbac
                 point = Point.fromLngLat(result.lastLocation!!.longitude, result.lastLocation!!.latitude)
                 Repository.routeCoordinates.add(point!!)
                 activity!!.map?.getLocationComponent()?.setCameraMode(
-                CameraMode.TRACKING,3000L,11.0,null,null,null)
+                CameraMode.TRACKING,3000L,15.0,null,null,null)
             }
         }
     }

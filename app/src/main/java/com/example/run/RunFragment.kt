@@ -2,10 +2,12 @@ package com.example.run
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.PendingIntent
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper.getMainLooper
+import android.os.Parcel
 import android.os.StrictMode
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -23,6 +25,7 @@ import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.location.LocationComponent
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
+import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
@@ -38,27 +41,30 @@ import com.mapbox.turf.TurfMeasurement
 class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapReadyCallback {
     companion object{
         private val PIN_IMAGE = "PIN_IMAGE"
-        private val PIN_LOCATION_SOURCE = "PIN_LOCATION_SOURCE"
-        private val PIN_LOCATION_SYMBOL = "PIN_LOCATION_SYMBOL"
+        val PIN_LOCATION_SOURCE = "PIN_LOCATION_SOURCE"
+        val PIN_LOCATION_SYMBOL = "PIN_LOCATION_SYMBOL"
+        var pinLastLocation : Location?= null
+        var pointList = mutableListOf<Location>()
+
+         var s:Int = 0
+         var f:Int = 1
+         var accumulatedDistanceMiles = 0.0
+         var accumulatedDistanceKilometers = 0.0
+         var distanceMiles:Double = 0.0
+         var distanceKilometers:Double = 0.0
+         var turfPointFrom:Point ?= null
+         var turfPointTo:Point ?= null
     }
 
     private var mapView:MapView?=null
     var map:MapboxMap ?= null
     private var permissionsManager:PermissionsManager?=null
-    private var pinLastLocation : Location?= null
-    private val pointList = mutableListOf<Location>()
-    private var newPinLastKnownLocation : Location ?= null
-    val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
-    val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
 
-    private var s:Int = 0
-    private var f:Int = 1
-    private var accumulatedDistanceMiles = 0.0
-    private var accumulatedDistanceKilometers = 0.0
-    private var distanceMiles:Double = 0.0
-    private var distanceKilometers:Double = 0.0
-    private var turfPointFrom:Point ?= null
-    private var turfPointTo:Point ?= null
+    private var newPinLastKnownLocation : Location ?= null
+    private val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
+    private val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
+
+
 
     @SuppressLint("MissingPermission", "UseCompatLoadingForDrawables")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -72,6 +78,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
             onCreate(savedInstanceState)
             getMapAsync { mapboxMap ->
                 map = mapboxMap
+                Repository.repoMapboxMap = map
                 mapboxMap.setStyle(Style.MAPBOX_STREETS){style ->
                     val pinImage = resources.getDrawable(R.drawable.ic_pin, null)
                     style.addImage(PIN_IMAGE, pinImage)
@@ -84,14 +91,19 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                         getDistanceKilometers()
                         Repository.repoAccumulatedDistanceMiles = accumulatedDistanceMiles
                         Repository.repoAccumulatedDistanceKilometers = accumulatedDistanceKilometers
-
+                        map?.locationComponent?.locationEngine?.removeLocationUpdates(PendingIntent.readPendingIntentOrNullFromParcel(Parcel.obtain()))
+                        map?.locationComponent?.setCameraMode(CameraMode.NONE)
+                        map?.locationComponent?.setLocationComponentEnabled(false)
                         binding.currentLocationFab.setOnClickListener {
 
                             mapboxMap.snapshot {
                                 Repository.screenShotRep = it
+
+
                                 var mainAct = activity as MainActivity
                                 val mainViewModel : MainFragViewModel by viewModels()
                                 mainViewModel.swapingViaInterface(mainAct,ResultsFragment())
+
                             }
                         }
                     }
@@ -134,7 +146,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
         }
     }
 
-    private fun setPinOnStartingLocation(style:Style): Int {
+    fun setPinOnStartingLocation(style:Style): Int {
         return if(pinLastLocation == null) {
             pinLastLocation = map?.locationComponent?.lastKnownLocation ?: return R.drawable.ic_pin
             val point = Point.fromLngLat(pinLastLocation!!.longitude, pinLastLocation!!.latitude)
@@ -180,7 +192,6 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
 
     override fun onPermissionResult(granted: Boolean) {
         if(granted){
-            map?.getStyle { enableLocation(it) }
         }
     }
 
@@ -192,7 +203,12 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
     override fun onResume() {
         super.onResume()
         mapView?.onResume()
-        map?.getStyle { enableLocationComponent(it) }
+        map?.getStyle {
+            enableLocationComponent(it)
+            if(pinLastLocation == null){
+                setPinOnStartingLocation(it)
+            }
+        }
 
     }
 
@@ -210,7 +226,6 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         mapView?.onSaveInstanceState(outState)
-
     }
 
     override fun onLowMemory() {
@@ -253,9 +268,10 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
 
 // Set the component's render mode
             locationComponent.setRenderMode(RenderMode.COMPASS);
-
-            initLocationEngine();
-            setPinOnStartingLocation(style)
+            initLocationEngine()
+            if(pinLastLocation == null) {
+                setPinOnStartingLocation(style)
+            }
 
         } else {
             val permissionsManager =  PermissionsManager(this)
