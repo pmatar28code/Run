@@ -31,7 +31,7 @@
 
     <TextView
         android:id="@+id/distance_title"
-        android:layout_width="126dp"
+        android:layout_width="128dp"
         android:layout_height="21dp"
         android:layout_marginStart="@dimen/standard_margin"
         android:layout_marginTop="@dimen/standard_margin"
@@ -55,18 +55,20 @@
         android:layout_marginStart="2dp"
         android:layout_marginEnd="16dp"
         android:text="KM"
+        app:layout_constraintBottom_toBottomOf="@+id/distance_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/button_miles"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/distance_text" />
 
     <Button
         android:id="@+id/button_miles"
         android:layout_width="54dp"
         android:layout_height="38dp"
         android:layout_marginStart="@dimen/standard_margin"
-        android:text="M"
+        android:text="MI"
+        app:layout_constraintBottom_toBottomOf="@+id/distance_text"
         app:layout_constraintEnd_toStartOf="@+id/button_kilometers"
         app:layout_constraintStart_toEndOf="@+id/distance_text"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/distance_text" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
