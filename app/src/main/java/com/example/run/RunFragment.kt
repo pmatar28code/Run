@@ -11,9 +11,12 @@ import android.os.StrictMode
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.example.run.databinding.FragmentRunBinding
 import com.example.run.repository.Repository
 import com.example.run.viewmodels.MainFragViewModel
+import com.example.run.viewmodels.RunFragViewModel
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineRequest
 import com.mapbox.android.core.permissions.PermissionsListener
@@ -31,6 +34,8 @@ import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.turf.TurfMeasurement
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapReadyCallback {
     companion object{
@@ -56,7 +61,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
     private val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
     private val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
 
-    @SuppressLint("MissingPermission", "UseCompatLoadingForDrawables")
+    @SuppressLint("MissingPermission", "UseCompatLoadingForDrawables", "SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = FragmentRunBinding.bind(view)
@@ -102,6 +107,18 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
                 }
             }
         }
+        val runFragViewModel = ViewModelProvider(
+        this@RunFragment).get(RunFragViewModel::class.java)
+        val liveDistance = runFragViewModel.liveDistance
+        liveDistance.observe(viewLifecycleOwner, Observer {
+        binding.topDistance.text = BigDecimal(it).setScale(
+        2, RoundingMode.HALF_EVEN).toString()+" Kilometers"
+        })
+    }
+
+    fun update(){
+        val runFragViewModel : RunFragViewModel by viewModels()
+        runFragViewModel.getLiveDistance()
     }
 
     private fun getDistanceMiles(){

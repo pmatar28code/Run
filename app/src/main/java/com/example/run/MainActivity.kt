@@ -30,8 +30,6 @@ class MainActivity() : AppCompatActivity(), MainInterface {
     override fun forSwapingFragments(fragment: Fragment) {
         swapFragments(fragment)
     }
-
-
 }
 
 

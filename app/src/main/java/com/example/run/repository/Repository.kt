@@ -2,6 +2,7 @@ package com.example.run.repository
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import com.example.run.RunFragment
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
@@ -12,18 +13,26 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import com.mapbox.turf.TurfMeasurement
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 object Repository {
     var routeCoordinates = mutableListOf<Point>()
     var screenShotRep:Bitmap ? = null
-    var repoAccumulatedDistanceMiles:Double ?= null
-    var repoAccumulatedDistanceKilometers:Double ?= null
+    var repoAccumulatedDistanceMiles:Double =0.0
+    var repoAccumulatedDistanceKilometers:Double =0.0
+    var repoLiveAccuDistanceKilometers = 0.0
     var repoMapboxMap:MapboxMap ?= null
     var lineSource = "0"
     var lineLayer = "1"
     var locationComponentDisabled = false
+
+    var rs =0
+    var rf = 1
+    var repoTurfPointFrom:Point ?= null
+    var repoTurfPointTo:Point ?= null
+    var repoDistanceKilometers:Double =0.0
 
      fun testingRoute(style: Style){
         lineSource+="0"
@@ -53,5 +62,23 @@ object Repository {
        val roundMiles=
                BigDecimal(repoAccumulatedDistanceMiles!!).setScale(2, RoundingMode.HALF_EVEN)
         return roundMiles
+    }
+
+    fun getDistanceKilometers(){
+        while (rs <= routeCoordinates.size){
+            if (rs <= routeCoordinates.size) {
+                if (rf < routeCoordinates.size) {
+                    repoTurfPointFrom = routeCoordinates[rs]
+                   repoTurfPointTo = routeCoordinates[rf]
+                    repoDistanceKilometers = TurfMeasurement.distance(repoTurfPointFrom!!,
+                            repoTurfPointTo!!, "kilometers")
+                    ++rf
+                }
+                ++rs
+                repoLiveAccuDistanceKilometers += repoDistanceKilometers
+            }
+        }
+        rs =0
+        rf =1
     }
 }
