@@ -109,10 +109,13 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
         }
         val runFragViewModel = ViewModelProvider(
         this@RunFragment).get(RunFragViewModel::class.java)
+
         val liveDistance = runFragViewModel.liveDistance
-        liveDistance.observe(viewLifecycleOwner, Observer {
-        binding.topDistance.text = BigDecimal(it).setScale(
-        2, RoundingMode.HALF_EVEN).toString()+" Kilometers"
+        
+        liveDistance.observe(viewLifecycleOwner, Observer
+        {
+            binding.topDistance.text = BigDecimal(it).setScale(
+            3, RoundingMode.HALF_EVEN).toString()+" Kilometers"
         })
     }
 

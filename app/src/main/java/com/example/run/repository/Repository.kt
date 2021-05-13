@@ -54,13 +54,13 @@ object Repository {
 
     fun roundKilometers():BigDecimal{
         val roundKilometers =
-                BigDecimal(repoAccumulatedDistanceKilometers!!).setScale(2, RoundingMode.HALF_EVEN)
+                BigDecimal(repoAccumulatedDistanceKilometers!!).setScale(3, RoundingMode.HALF_EVEN)
         return roundKilometers
     }
 
     fun roundMiles():BigDecimal{
        val roundMiles=
-               BigDecimal(repoAccumulatedDistanceMiles!!).setScale(2, RoundingMode.HALF_EVEN)
+               BigDecimal(repoAccumulatedDistanceMiles!!).setScale(3, RoundingMode.HALF_EVEN)
         return roundMiles
     }
 
