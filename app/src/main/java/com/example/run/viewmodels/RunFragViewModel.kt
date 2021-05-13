@@ -15,7 +15,7 @@ class RunFragViewModel: ViewModel() {
 
     fun getLiveDistance(){
         val distance = Repository.repoLiveAccuDistanceKilometers
-        liveDistance.postValue(distance!!)
+        liveDistance.postValue(distance)
     }
 
 }

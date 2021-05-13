@@ -24,16 +24,15 @@ class ResultsFragment: Fragment(R.layout.fragment_results) {
 
         binding.apply {
             mapScreeshot.setImageBitmap(Repository.screenShotRep)
-            distanceText.text = Repository.roundMiles().toString() + " Miles"
+            distanceText.text = Repository.roundMiles().toString() + " Mi"
             buttonMiles.setOnClickListener {
-            distanceText.text = Repository.roundMiles().toString() + " Miles"
+            distanceText.text = Repository.roundMiles().toString() + " Mi"
             }
             buttonKilometers.setOnClickListener {
                 distanceText.text = Repository.roundKilometers().toString() + " KM"
             }
                 shareFab.setOnClickListener {
                 share(Repository.screenShotRep!!)
-
             }
         }
     }

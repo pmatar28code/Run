@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.run.databinding.ActivityMainBinding
 import com.example.run.interfaces.MainInterface
-import com.example.run.repository.Repository
 import com.mapbox.mapboxsdk.Mapbox
 
 class MainActivity() : AppCompatActivity(), MainInterface {
