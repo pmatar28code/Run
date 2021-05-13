@@ -31,12 +31,12 @@
 
     <TextView
         android:id="@+id/distance_title"
-        android:layout_width="128dp"
+        android:layout_width="110dp"
         android:layout_height="21dp"
         android:layout_marginStart="@dimen/standard_margin"
         android:layout_marginTop="@dimen/standard_margin"
         android:text="@string/total_distance_text"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -45,7 +45,7 @@
         android:id="@+id/distance_text"
         android:layout_width="100dp"
         android:layout_height="21dp"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@+id/distance_title"
         app:layout_constraintTop_toTopOf="@+id/distance_title" />
@@ -56,6 +56,7 @@
         android:layout_height="38dp"
         android:layout_marginStart="2dp"
         android:layout_marginEnd="16dp"
+        android:backgroundTint="#3F51B5"
         android:text="KM"
         app:layout_constraintBottom_toBottomOf="@+id/distance_text"
         app:layout_constraintEnd_toEndOf="parent"
@@ -67,6 +68,7 @@
         android:layout_width="60dp"
         android:layout_height="38dp"
         android:layout_marginStart="16dp"
+        android:backgroundTint="#3F51B5"
         android:text="MI"
         app:layout_constraintBottom_toBottomOf="@+id/distance_text"
         app:layout_constraintEnd_toStartOf="@+id/button_kilometers"
