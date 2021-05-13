@@ -2,7 +2,6 @@ package com.example.run
 
 import android.os.Bundle
 import android.view.View
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.run.databinding.FragmentMainBinding
@@ -17,10 +16,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         binding.apply {
             mainStartRunButton.setOnClickListener{
-                mainTitleText.isVisible = mainViewModel.visibilityFalse
-                mainTextIntro.isVisible = mainViewModel.visibilityFalse
-                mainImage.isVisible =  mainViewModel.visibilityFalse
-                mainStartRunButton.isVisible = mainViewModel.visibilityFalse
                 mainViewModel.swapingViaInterface(mainAct,RunFragment())
             }
         }

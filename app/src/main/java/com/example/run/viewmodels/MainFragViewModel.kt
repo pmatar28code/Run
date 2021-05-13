@@ -6,8 +6,6 @@ import androidx.lifecycle.ViewModel
 import com.example.run.MainActivity
 
 class MainFragViewModel: ViewModel() {
-    var visibilityFalse = false
-
     fun swapingViaInterface(activity: Activity,fragment:Fragment){
         var mainAct = activity as MainActivity
         mainAct.forSwapingFragments(fragment)
