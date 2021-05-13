@@ -111,7 +111,7 @@ class RunFragment: Fragment(R.layout.fragment_run),PermissionsListener, OnMapRea
         this@RunFragment).get(RunFragViewModel::class.java)
 
         val liveDistance = runFragViewModel.liveDistance
-        
+
         liveDistance.observe(viewLifecycleOwner, Observer
         {
             binding.topDistance.text = BigDecimal(it).setScale(
